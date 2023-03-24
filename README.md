@@ -21,3 +21,10 @@
 *  [Sample boto3 script to access SCEDC PDS](../main/jupyter-notebooks/boto3_demo.ipynb)
 
    This script uses boto3 to retrieve a waveform file from the SCEDC PDS and print waveform information using Obspy functions.
+
+## Accessing SCEDC/SCSN data via MATLAB 
+
+*  Retrieve event, station, and waveform data from SCEDC using MATLAB: [Regular .m Script](../main/scedc_access_tutorial.m) or [Live Script](../main/scedc_access_tutorial.mlx)
+*  Note that both versions contain the same information and code.
+  
+    This tutorial demonstrates how to retrieve event, station, and waveform data using irisFetch in MATLAB and make basic plots with the data. The tutorial also briefly covers waveform access and plotting with the GISMO toolbox.
