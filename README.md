@@ -15,3 +15,9 @@
 *  [Retrieve DAS waveform data from AWS and basic processing](../main/jupyter-notebooks/DAS_aws_Ridgecrest/access_aws_data.ipynb) 
   
     This tutorial shows how to download distributed acoustic sensing (DAS) data from the Ridgecrest array and how to perform simple processing operations on the data (e.g., plotting earthquake strain, computing cross-correlations).
+    
+## Sample AWS Boto3 script
+
+*  [Sample boto3 script to access SCEDC PDS](../main/jupyter-notebooks/boto3_demo.ipynb)
+
+   This script uses boto3 to retrieve a waveform file from the SCEDC PDS and print waveform information using Obspy functions.
