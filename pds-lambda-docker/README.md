@@ -5,7 +5,7 @@ from the the SCEDC Open Data Set and stores the resulting file an S3 bucket in y
 
 You will be using a Cloud9 environment to create and upload a Docker image to ECR that contains processing code and ObsPy. You will then create a Lambda function using the Docker image 
 
-The code for the Lambda function is in [`app.py`](app.py). You can modify it to create Lambda functions that do different types of processing.
+The code for the Lambda function is in [`app.py`](app.py). You can modify it to create Lambda functions that do different types of processing on Public Data Set files.
 
 ## Setting up S3 and Cloud9
 
@@ -64,6 +64,8 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 6. Click the check box next to the repository name. Then click "View Push Commands."
 
+![View push commands](graphics/ECR_view_push.png)
+
 7. Copy and paste the `aws ecr` command into the Cloud9 terminal and run it to authenticate your Docker client.
 
 8. Copy and paste the `docker tag` command into the terminal and run it to tag the image. 
@@ -82,11 +84,19 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 4. Scroll down and select "Lambda" under "Common Use Cases." Click "Next."
 
+![IAM role creation](graphics/IAM_role.png)
+
 5. Select AWSLambdaBasicExecution.
 
 6. In the search box, type `AmazonS3Full`. Select AmazonS3FullAccess, and click Next.
 
-7. Enter a name and description for the role, and click "Create Role." 
+![Adding AmazonS3FullAccess](graphics/IAM_s3_full_access.png)
+
+7. Enter a name and description for the role, and click "Create Role."
+
+   This is what your permissions should be:
+
+   ![IAM role permissions](graphics/IAM_role_permissions.png)
 
 ## Creating and Running the Lambda Function
 
@@ -153,3 +163,51 @@ to see that it now has results in it.
 
 ![Output file in S3](graphics/Lambda_results.png)
 
+[`run_lambda.py`](run_lambda.py) contains code for invoking your lambda function using the Boto3 library. To run it in Cloud9, you will need to install boto3. You will also need to change the Lambda function name and S3 output bucket in the code.
+
+    ````
+    pip install boto3
+    python run_lambda.py
+    ```
+
+## (Optional) API Gateway
+
+In this section, you will create an API for your Lambda function that will let it accept requests over HTTP, and you will test it using `curl`. An API can be integrated into web services without using AWS libraries.
+
+1. From the console, navigate to API Gateway.
+
+2. Click "Create API."
+
+3. Click "Build" under "HTTP API."
+
+4. Click "Add Integration." 
+
+5. Click the down arrow in the text box, and select "Lambda."
+
+6. Click the box with the magnifying glass, and your Lambda function should appear as an option. Select it so that it appears in the box.
+
+![Adding integration](graphics/API_add_integration.png)
+
+7. Choose a name for the API, and click "Next."
+
+8. Choose POST as the route.
+
+9. Enter a resource path. This is what appear after the last '/' in your API's URL: https://your-api/resource_path. Click "Next."
+
+![Configuring routes](graphics/API_configure_routes.png)
+
+10. Click "Next" on the next screen.
+
+11. Click "Create."
+
+12. On the next screen, you can find your API's URL listed under "Stages." 
+
+13. Open `request.json` in the Cloud9 IDE, and change the value of `s3_output_bucket` to your own bucket. To decimate    different files, change the value of `s3_key`.
+
+13. Call your API by running:
+
+    ````
+    curl -X POST -H "Content-Type: application/json" -d @request.json https://your-api-url/decimate
+    ````
+
+    Replace `your-api-url` with the actual URL. This comment sends the contents of `request.json` to the API.
