@@ -98,8 +98,6 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 7. Enter a name and description for the role, and click "Create Role."
 
-   This is what your permissions should look like:
-
    ![IAM role permissions](graphics/IAM_role_permissions.png)
 
 ## Creating and Running the Lambda Function
@@ -163,7 +161,7 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
     aws s3 ls s3://YOUROUTPUTBUCKET/
     ````
 
-to see that it now has decimated in it.
+to see that it now contains decimated waveforms.
 
 ![Output file in S3](graphics/Lambda_results.png)
 
