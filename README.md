@@ -4,6 +4,10 @@
 
 *  [Retrieve event, station and waveform data for the 2019 Ridgecrest 7.1](../main/jupyter-notebooks/Ridgecrest7_1_SCEDC_web_services.ipynb)
 
+## SCEDC PySTP
+
+* [Retrieve and plot event triggered data and phase picks using PySTP](../main/jupyter-notebooks/PySTP_Tutorial.ipynb)
+
 ## SCEDC Public Data Set (PDS)  
   
 *  [Retrieve continuous waveform data from SCEDC PDS](../main/jupyter-notebooks/PDS_fetch_continuous_data/PDS_fetch_continuous_data.ipynb) 
