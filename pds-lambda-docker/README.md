@@ -94,6 +94,8 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 ![Adding AmazonS3FullAccess](graphics/IAM_s3_full_access.png)
 
+   Do the same for CloudwatchLogsFullAccess. This may be required for debugging the Lambda function.
+
 7. Enter a name and description for the role, and click "Create Role."
 
    This is what your permissions should look like:
