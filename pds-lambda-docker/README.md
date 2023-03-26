@@ -206,13 +206,17 @@ In this section, you will create an API for your Lambda function that will let i
 
 13. Open `request.json` in the Cloud9 IDE, and change the value of `s3_output_bucket` to your own bucket. To decimate    different files, change the value of `s3_key`.
 
-13. Call your API by running:
+14. Call your API by running:
 
     ````
     curl -X POST -H "Content-Type: application/json" -d @request.json https://your-api-url/decimate
     ````
 
     Replace `your-api-url` with the actual URL. This comment sends the contents of `request.json` to the API.
+
+## Accessing the Decimated Waveforms
+
+You can confirm that the decimated waveforms are in your S3 bucket by running `aws s3 ls s3://YOURBUCKETNAME` or navigating to the bucket in the AWS console. You can also download and plot them in [this notebook](../main/jupyter-notebooks/s3_view_decimated.ipynb). 
 
 ## Links
 
