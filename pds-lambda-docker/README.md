@@ -167,10 +167,10 @@ to see that it now has decimated in it.
 
 [`run_lambda.py`](run_lambda.py) contains code for invoking your lambda function using the Boto3 library. To run it in Cloud9, you will need to install boto3. You will also need to change the Lambda function name and S3 output bucket in the code.
 
-    ````
+```
     pip install boto3
     python run_lambda.py
-    ````
+```
 
 ## (Optional) API Gateway
 
