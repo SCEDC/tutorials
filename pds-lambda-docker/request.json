@@ -2,4 +2,5 @@
     "s3_input_bucket": "scedc-pds",
     "s3_output_bucket": "lambda-output-3909",
     "s3_key": "continuous_waveforms/2016/2016_123/CIPASC_HHZ00_2016123.ms",
-  }
+    "decimation_factor": 4
+}
