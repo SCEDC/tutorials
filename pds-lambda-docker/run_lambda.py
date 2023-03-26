@@ -9,7 +9,7 @@ import json
 LAMBDA_FUNCTION = 'decimation-lambda'
 
 session = boto3.Session()
-client = session.client('lambda', region_name='US-West-2')
+client = session.client('lambda', region_name='us-west-2')
 
 event = {
   "s3_input_bucket": "scedc-pds",
