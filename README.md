@@ -13,6 +13,10 @@
 *  [Retrieve continuous waveform data from SCEDC PDS](../main/jupyter-notebooks/PDS_fetch_continuous_data/PDS_fetch_continuous_data.ipynb) 
   
     This tutorial uses the *Clickable Station Map* to query and retrieve a list of stations. It then, leverages the SCEDC FDSN availability web service to get time spans for waveform data for these stations. Finally, it retrieves data from PDS for a time span.
+    
+*  [Create an API to decimate waveform data from SCEDC PDS](../main/pds-lambda-docker/README.md)
+
+    This tutorial shows how to create an API that runs a Lambda function to decimate a waveform from the SCEDC PDS using ObsPy and store the decimated waveform in another S3 bucket. AWS services used: Lambda, ECR, S3, Cloud9.
 
 ## SCEDC AWS Ridgecrest DAS  
 
