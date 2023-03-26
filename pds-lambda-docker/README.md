@@ -216,7 +216,7 @@ In this section, you will create an API for your Lambda function that will let i
 
 ## Accessing the Decimated Waveforms
 
-You can confirm that the decimated waveforms are in your S3 bucket by running `aws s3 ls s3://YOURBUCKETNAME` or navigating to the bucket in the AWS console. You can also download and plot them in [this notebook](../main/jupyter-notebooks/s3_view_decimated.ipynb). 
+You can confirm that the decimated waveforms are in your S3 bucket by running `aws s3 ls s3://YOURBUCKETNAME` or navigating to the bucket in the AWS console. You can also download and plot them in [this notebook](../jupyter-notebooks/s3_view_decimated.ipynb). 
 
 ## Links
 
