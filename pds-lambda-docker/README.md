@@ -15,6 +15,8 @@ The code for the Lambda function is in [`app.py`](app.py). You can modify it to 
 
 3. Click on "Create bucket."
 
+![Create bucket](graphics/S3_create_bucket.png)
+
 4. Create a bucket with the name `lambda-output-` followed by the last four digits of your account number. The rest of the settings don't need to be changed. Your Lambda function will write to this bucket.
 
 5. Navigate to the Cloud9 service. Make sure Oregon (us-west-2) is the region selected in the upper right corner.
@@ -94,7 +96,7 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 7. Enter a name and description for the role, and click "Create Role."
 
-   This is what your permissions should be:
+   This is what your permissions should look like:
 
    ![IAM role permissions](graphics/IAM_role_permissions.png)
 
@@ -156,10 +158,10 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 18. Hopefully, you will see the message "Execution result: succeeded." You can open the details to see that the function has returned an output_key in your bucket. This is the decimated file. From the terminal, you can run:
 
     ````
-    aws s3 ls s3://YOURBUCKETNAME/
+    aws s3 ls s3://YOUROUTPUTBUCKET/
     ````
 
-to see that it now has results in it.
+to see that it now has decimated in it.
 
 ![Output file in S3](graphics/Lambda_results.png)
 
@@ -168,7 +170,7 @@ to see that it now has results in it.
     ````
     pip install boto3
     python run_lambda.py
-    ```
+    ````
 
 ## (Optional) API Gateway
 
@@ -211,3 +213,17 @@ In this section, you will create an API for your Lambda function that will let i
     ````
 
     Replace `your-api-url` with the actual URL. This comment sends the contents of `request.json` to the API.
+
+## Links
+
+[Amazon Elastic Container Registry](https://aws.amazon.com/ecr/)
+
+[AWS Lambda](https://aws.amazon.com/lambda/)
+
+[AWS Cloud9](https://aws.amazon.com/cloud9/)
+
+[Building Lambda Functions with Python](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python.html)
+
+[Deploy Python Lambda functions with container images](https://docs.aws.amazon.com/lambda/latest/dg/python-image.html)
+
+[Welcome to AWS Re:Invent 2022](https://catalog.us-east-1.prod.workshops.aws/workshops/a17b1a12-4c81-428a-b5c7-8e9c4cae002d/en-US/setup)
