@@ -23,6 +23,8 @@
 *  [Retrieve DAS waveform data from AWS and basic processing](../main/jupyter-notebooks/DAS_aws_Ridgecrest/access_aws_data.ipynb) 
   
     This tutorial shows how to download distributed acoustic sensing (DAS) data from the Ridgecrest array and how to perform simple processing operations on the data (e.g., plotting earthquake strain, computing cross-correlations).
+
+    If GitHub cannot render this notebook, one can visualize it at this link: https://nbviewer.org/github/SCEDC/tutorials/blob/main/jupyter-notebooks/DAS_aws_Ridgecrest/access_aws_data.ipynb
     
 ## Sample AWS Boto3 script
 
