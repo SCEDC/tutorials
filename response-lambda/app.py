@@ -10,6 +10,7 @@ import os
 import boto3
 import json
 import obspy
+import numpy
 from obspy.core.inventory.inventory import read_inventory
 from obspy.core.stream import Stream
 import logging
@@ -47,16 +48,26 @@ def remove_response(infile, outfile, staxml_file, pre_filt=[], water_level=None,
         #st_new.append(tr)
     # Write the resulting stream to disk.
     st.remove_response(inventory=inv, pre_filt=pre_filt, water_level=water_level)
-    st.write(outfile, format='MSEED')
+    # Convert data to int32 so that it can be compressed in STEIM2.
+    for trace in st:
+        trace.data = trace.data.astype(numpy.int32)
+    st.write(outfile, format='MSEED', encoding='STEIM2')
 
 
 def get_s3_key(net, sta, chan, loc, year, day):
+    """ Returns the Public Data Set filename and the full key given an NSCL, year, and day.
+    """
     filler = '_'
     filename = f'{net}{sta:{filler}<{5}}{chan}{loc:{filler}<{2}}_{year}{day.zfill(3)}.ms'
     #filename = f"{net}{sta.rjust(5, '_')}{chan}{loc.rjust(2, '_')}_{year}{day.zfill(3)}.ms"
     return (filename, f'continuous_waveforms/{year}/{year}_{day.zfill(3)}/{filename}')
-   
+
+
 def get_s3_staxml_key(net, sta):
+    """ Returns the Public Set filename and full key of a station's
+    StationXML file.
+    """
+    
     filename = f'{net}_{sta}.xml'
     return filename, f'FDSNstationXML/{net}/{filename}'
 
@@ -87,7 +98,7 @@ def process(event):
 
     print('Processing {}'.format(s3_key))
     
-    output_bucket = event['s3_output_bucket']
+    output_bucket = os.environ['S3_OUTPUT_BUCKET']
     #bkt_in_name = event['s3_input_bucket']
     
     #print('input bucket:{} output bucket:{} decimation:{}'.format(bkt_in_name, bkt_out_name, dec_factor))
