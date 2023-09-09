@@ -6,18 +6,29 @@ The original method of creating Lambda functions packages the function and libra
 
 In summary, the steps to create your own ObsPy-based Lambda function are as follows:
 
-1. Write your custom code and a Lambda handler in `app.py`.
-2. Create a Docker image that has ObsPy, other dependencies, and `app.py` installed. 
+1. Write your custom code and a Lambda handler.
+2. Create a Docker image that has ObsPy, other dependencies, and the source code installed. Set the entrypoint to be your handler function.
 3. Test the Lambda function locally.
 4. Push the Docker image to Amazon Elastic Container Registry.
 5. Create the Lambda function from the Docker image.
-6. Optionally, set up triggers, such as an API Gateway, to run the Lambda function.
+6. Optionally, set up triggers, such as an API Gateway, to call the Lambda function.
 
-This repository contains the code for a sample Lambda function that removes the response from a waveform file from the SCEDC Public Data Set and writes the resulting waveform to an S3 bucket specified as an environment variable when creating the function. This tutorial will explain how to create this Lambda function and how to adapt the steps to writing your own custom processing Lambda function.
+This repository contains the code for a sample Lambda function that removes the response from a waveform file from the SCEDC Public Data Set and writes the resulting waveform to an S3 bucket. The output S3 bucket is specified as an environment variable when creating the function. The day of year and the network/station/channel/loction code the waveform are passed to the Lambda function in the format:
+
+```
+{ 
+    "day": "yyyy,ddd",
+    "nscl": "net.sta.chan.loc"
+}
+```
+
+If the location code consists only of blanks, the format of `nscl` will look like "net.sta.chan.". 
+
+This tutorial will explain how to create this Lambda function using Docker and how to adapt the process to writing your own Lambda functions for processing data from the Public Data Set.
 
 ## Writing the Code.
 
-The code for your Lambda function needs a handler function that accepts the input parameters of a Lambda request and a context object. In Python, the input parameters are a dictionary, and the output is also a dictionary. 
+The code for your Lambda function needs a handler function that accepts the input parameters of a Lambda request and a context object. In Python, the input parameters are a dictionary, and the output is also a dictionary. This example does not use the context object.
 
 In this repository, the code is written in a file named `app.py`. Later, the handler function in `app.py` will be specified as the entrypoint of the Docker container that runs the Lambda. The handler just passes the parameters on a `process` function that does all the work.
 
@@ -37,16 +48,42 @@ def handler(event, context):
         return response
 ```
 
-You can reuse this function in your own version of `app.py` and write a different `process` function that does the processing you need. 
+You can reuse this function in your own code and write a different `process` function that does the processing you need. 
 
-The code in this repository removes the station response from a continuous waveform file from the SCEDC Public Data Set and writes the resulting waveform to an output S3 bucket. First, it identifies and downloads the original waveform file from the Public Data Set, storing it in /tmp in the Lamba image. Then it downloads the StationXML file for the waveform, also from the Public Data Set, and stores it in /tmp. It then creates an ObsPy inventory object from the StationXML and passes the waveform file and the inventory to ObsPy's `stream.remove_response` method. The resulting waveform is written to /tmp and then uploaded to the output S3 bucket. The output key name is returned in a dictionary.
+The code in the process function in `app.py` removes the station response from a continuous waveform file from the SCEDC Public Data Set and writes the resulting waveform to an output S3 bucket. First, it identifies and downloads the original waveform file from the Public Data Set, storing it in /tmp in the Lambda image.
 
+```python
+s3.download_file(pds_bucket, s3_key, infile)
+if not os.path.isfile(infile):
+    raise Exception('Could not download {} from {} to {}'.format(s3_key, pds_bucket, infile))
+```
+
+ Then it downloads the StationXML file for the waveform, also from the Public Data Set, and stores it in /tmp. 
+ 
+ ```python
+ staxml_fn, staxml_key = get_s3_staxml_key(net, sta)
+staxml_infile = f'/tmp/{staxml_fn}'
+s3.download_file(pds_bucket, staxml_key, f'/tmp/{staxml_fn}')
+if not os.path.isfile(staxml_infile):
+    raise Exception('Could not download StationXML')
+```
+ 
+ It then creates an ObsPy inventory object from the StationXML and passes the waveform file and the inventory to ObsPy's `stream.remove_response` method:
+ ```python
+ st.remove_response(inventory=inv, pre_filt=pre_filt, water_level=water_level)   
+ ```
+ 
+The resulting waveform is written to /tmp and then uploaded to the output S3 bucket. The output key name is returned in a dictionary.
 
 ## Creating a Docker Image
 
+If you are going to be creating multiple Lambda functions that share the same dependencies, you may want to create a base Docker image to be used by your individual Lambda function images. For example, for ObsPy, you can create an image based on Amazon's Python base images that installs ObsPy. Then, when you create an image for your Lambda function, you can create a Docker image that pulls in the image with ObsPy. 
+
+Alternatively, you can also create a Docker image for your Lambda function that uses Amazon's Python images and installs ObsPy along with your function handler. This is the approach used in this tutorial.
+
 Start by creating a file named `Dockerfile`.
 
-The first line of the Dockerfile imports a base image. For Lambda, either use one of Amazon's provided base images or an image based on Amazon's.
+The first line of the Dockerfile imports a base image compatible with Lambda.
 
 Create a file name `requirements.txt` that lists needed Python modules. The following lines in the Dockerfile tell Docker to copy `requirements.txt` into the Docker image and run pip3 to install the modules in it into the AWS Lambda root directory.
 
@@ -83,21 +120,15 @@ docker build -t response-lambda .
 
 3. Make sure Oregon is select as the region in the upper right corner of your window, and enter a name for your repository.
 
-![Creating an ECR repo](graphics/ECR_create_repo.png)
-
 4. Scroll down and click "Create Repository."
 
 6. Click the check box next to the repository name. Then click "View Push Commands."
-
-![View push commands](../pds-lambda-docker/graphics/ECR_view_push.png)
 
 7. Copy and paste the `aws ecr` command into your terminal and run it to authenticate your Docker client.
 
 8. Copy and paste the `docker tag` command into your terminal terminal and run it to tag the image. 
 
 9. Copy and paste the `docker push` command into your terminal and run it to upload the image. If you click on your Docker repository on the ECR page, you should see the latest image.
-
-![ECR Docker image](graphics/ECR_image.png)
 
 ## Creating an IAM Role for the Lambda Function
 
@@ -137,8 +168,6 @@ docker build -t response-lambda .
 
 7. Select your image, and click "Select image."
 
-![Select image](graphics/Lambda_select_image.png)
-
 8. Open "Change default execution role" to open it. Select "Use an existing role." 
 
 9. Click the down arrow next to the "Existing role" field, and select the role that you created earlier.
@@ -153,7 +182,6 @@ docker build -t response-lambda .
 
 13. Change memory to 2048 MB. Change the timeout to 1 min.
 
-![Change configuration](graphics/Lambda_configuration.png)
 
 14. Click "Save."
 
@@ -174,12 +202,16 @@ docker build -t response-lambda .
 
 ## Running the Lambda Function
 
-[`run_lambda.py`](run_lambda.py) contains code for invoking your lambda function using the Boto3 library. To run it in Cloud9, you will need to install boto3. You will also need to change the Lambda function name and S3 output bucket in the code.
+[`run_lambda.py`](run_lambda.py) contains code for invoking the response Lambda function. 
 
 ```
     pip install boto3
     python run_lambda.py
 ```
+
+## Performance
+
+The response removal Lambda function was run on July 2019 HHZ data from CI stations, which is 7569 waveforms. AWS Lambda took 9 minutes to finish processing and ran a maximum of 1000 concurrent processes at a time. This is the maximum allowed by the account. One such run fits within the AWS Lambda free tier, which is 1 million requests and 400,000 GB-seconds per month free. However, because there were bugs during the first attempts, multiple runs were done, which incurred a cost of $14.52. Each run of this Lambda function takes 25-29 seconds with 2GB of RAM allocated.
 
 ## Links
 
