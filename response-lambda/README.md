@@ -1,4 +1,4 @@
-# ObsPy in Lambda Functions
+# Processing SCEDC Open Data Set Waveforms with ObsPy in AWS Lambda
 
 Using Docker, you can write your own Amazon Lambda function that uses ObsPy to processes waveforms from the SCEDC Open Data Set and writes the resulting data to your own S3 bucket. This means that you do not need to provision EC2 servers, nor do you need to allocate local storage space for waveforms.
 
@@ -13,34 +13,71 @@ In summary, the steps to create your own ObsPy-based Lambda function are as foll
 5. Create the Lambda function from the Docker image.
 6. Optionally, set up triggers, such as an API Gateway, to run the Lambda function.
 
+This repository contains the code for a sample Lambda function that removes the response from a waveform file from the SCEDC Public Data Set and writes the resulting waveform to an S3 bucket specified as an environment variable when creating the function. This tutorial will explain how to create this Lambda function and how to adapt the steps to writing your own custom processing Lambda function.
+
 ## Writing the Code.
 
-The code for your function should be in a file named `app.py`. It needs to have a function named `handler` that accepts the JSON body of a Lambda request.
+The code for your Lambda function needs a handler function that accepts the input parameters of a Lambda request and a context object. In Python, the input parameters are a dictionary, and the output is also a dictionary. 
+
+In this repository, the code is written in a file named `app.py`. Later, the handler function in `app.py` will be specified as the entrypoint of the Docker container that runs the Lambda. The handler just passes the parameters on a `process` function that does all the work.
+
+```python
+def handler(event, context):
+    """ Lambda function handler.
+    """
+    
+    response =  process(event)
+    
+    if api_gateway:
+        return {
+            'statusCode': 200,
+            'body': json.dumps(response),
+        }
+    else:
+        return response
+```
+
+You can reuse this function in your own version of `app.py` and write a different `process` function that does the processing you need. 
+
+The code in this repository removes the station response from a continuous waveform file from the SCEDC Public Data Set and writes the resulting waveform to an output S3 bucket. First, it identifies and downloads the original waveform file from the Public Data Set, storing it in /tmp in the Lamba image. Then it downloads the StationXML file for the waveform, also from the Public Data Set, and stores it in /tmp. It then creates an ObsPy inventory object from the StationXML and passes the waveform file and the inventory to ObsPy's `stream.remove_response` method. The resulting waveform is written to /tmp and then uploaded to the output S3 bucket. The output key name is returned in a dictionary.
+
 
 ## Creating a Docker Image
 
-1. From your Event Engine login page, copy the "export" statements. Paste them into your terminal and hit ENTER. These statements set your AWS keys and session token as environment variables and make sure you have permission to run `aws` commands from the terminal.
+Start by creating a file named `Dockerfile`.
 
-2. In Cloud9, click the button in left sidebar above the "aws" logo. Click "Clone Repository."
-Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and hit Enter.
+The first line of the Dockerfile imports a base image. For Lambda, either use one of Amazon's provided base images or an image based on Amazon's.
 
-3. Click on the folder icon in the sidebar to navigate the filesystem.  You can open files in the IDE by double clicking them. The files for this tutorial are in `tutorials/pds-lambda-docker`.
+Create a file name `requirements.txt` that lists needed Python modules. The following lines in the Dockerfile tell Docker to copy `requirements.txt` into the Docker image and run pip3 to install the modules in it into the AWS Lambda root directory.
 
-4. In the terminal, navigate to tutorials/pds-lambda-docker.
+```
+COPY requirements.txt  .
+RUN  pip3 install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+```
 
-    `cd tutorials/pds-lambda-docker`
+Copy `app.py` into the path for Lambda using a built-in variable of the base image;
 
-5. Choose a name for your Docker image, like decimation-lambda, or my_docker_image, and run the command below to build the image using the provided Dockerfile.
-  
-    `docker build -t decimation-lambda .`
+```
+COPY app.py ${LAMBDA_TASK_ROOT}
+```
 
-    This Dockerfile builds a Docker image based on AWS's lambda/python:3.8 base image that has ObsPy installed. ObsPy and its dependencies are listed in `requirements.txt`. The Dockerfile also tells Docker to make a copy of `app.py` in the image and to run the function `app.handler` as the entrypoint for the Lambda function. 
- 
+Set the handler function to be the entrypoint of the container:
+
+```
+CMD [ "app.handler" ] 
+```
+
+Run the `docker build` command to build a Docker image. If you are building an image with a different name, replace `response-lambda` with the name you are using.
+
+```
+docker build -t response-lambda .
+```
+    
 ## Uploading the Docker Image to ECR
   
 1. Go to the ECR (Elastic Container Registry) service from your AWS console.
 
-![ECR from the AWS Console](graphics/console_ECR.png)
+![ECR from the AWS Console](../pds-lambda-docker/graphics/console_ECR.png)
 
 2. Click "Get Started."
 
@@ -52,13 +89,13 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 6. Click the check box next to the repository name. Then click "View Push Commands."
 
-![View push commands](graphics/ECR_view_push.png)
+![View push commands](../pds-lambda-docker/graphics/ECR_view_push.png)
 
-7. Copy and paste the `aws ecr` command into the Cloud9 terminal and run it to authenticate your Docker client.
+7. Copy and paste the `aws ecr` command into your terminal and run it to authenticate your Docker client.
 
-8. Copy and paste the `docker tag` command into the terminal and run it to tag the image. 
+8. Copy and paste the `docker tag` command into your terminal terminal and run it to tag the image. 
 
-9. Copy and paste the `docker push` command to upload the image. If you click on your Docker repository on the ECR page, you should see the latest image.
+9. Copy and paste the `docker push` command into your terminal and run it to upload the image. If you click on your Docker repository on the ECR page, you should see the latest image.
 
 ![ECR Docker image](graphics/ECR_image.png)
 
@@ -72,21 +109,19 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 4. Scroll down and select "Lambda" under "Common Use Cases." Click "Next."
 
-![IAM role creation](graphics/IAM_role.png)
+![IAM role creation](../pds-lambda-docker/graphics/IAM_role.png)
 
 5. Select AWSLambdaBasicExecution.
 
 6. In the search box, type `AmazonS3Full`. Select AmazonS3FullAccess, and click Next.
 
-![Adding AmazonS3FullAccess](graphics/IAM_s3_full_access.png)
+![Adding AmazonS3FullAccess](../pds-lambda-docker/graphics/IAM_s3_full_access.png)
 
    Do the same for CloudwatchLogsFullAccess. This may be required for debugging the Lambda function.
 
 7. Enter a name and description for the role, and click "Create Role."
 
-   ![IAM role permissions](graphics/IAM_role_permissions.png)
-
-## Creating and Running the Lambda Function
+## Creating the Lambda Function
 
 1. Go to the Lambda service from your AWS console. Make sure you are in the Oregon region.
 
@@ -108,7 +143,7 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 9. Click the down arrow next to the "Existing role" field, and select the role that you created earlier.
 
-![Choose IAM role](graphics/Lambda_choose_role.png)
+![Choose IAM role](../pds-lambda-docker/graphics/Lambda_choose_role.png)
 
 10. Click "Create Function."
 
@@ -116,7 +151,7 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 12. Click "Edit."
 
-13. Change memory and ephemeral storage to 1024 MB. Change the timeout to 1 min.
+13. Change memory to 2048 MB. Change the timeout to 1 min.
 
 ![Change configuration](graphics/Lambda_configuration.png)
 
@@ -128,28 +163,16 @@ Paste https://github.com/SCEDC/tutorials.git into the "Repository URL" field and
 
 17. Create a name for your test event, and paste the following code into the "Event JSON" box.
 
-    ````
+    ```
     {
-      "s3_input_bucket": "scedc-pds",
-      "s3_output_bucket": "YOUR_OUTPUT_BUCKET",
-      "s3_key": "continuous_waveforms/2016/2016_123/CIWCS2_BHE___2016123.ms",
-      "decimation_factor": 4
+        "day": "2019,183",
+        "nscl": "CI.SOC.HHZ."
     }
-    ````
+    ```
 
-    Make sure to replace "YOUR_OUTPUT_BUCKET" with the name of the bucket your created earlier. `s3_input_bucket` is the SCEDC Public Data Set. `s3_key` is the key of the waveform from the Public Data Set that will be decimated. 
+    Click "Test" to run the Lambda function. The Lambda function will download and remove the channel response from 2019, day 183 waveform for the channel CI.SOC.HHZ and upload the resulting waveform to the S3 bucket specified in the S3_OUTPUT_BUCKET environment variable.
 
-    Click "Test" to run the Lambda function.
-
-18. Hopefully, you will see the message "Execution result: succeeded." You can open the details to see that the function has returned an output_key in your bucket. This is the decimated file. From the terminal, you can run:
-
-    ````
-    aws s3 ls s3://YOUROUTPUTBUCKET/
-    ````
-
-to see that it now contains decimated waveforms.
-
-![Output file in S3](graphics/Lambda_results.png)
+## Running the Lambda Function
 
 [`run_lambda.py`](run_lambda.py) contains code for invoking your lambda function using the Boto3 library. To run it in Cloud9, you will need to install boto3. You will also need to change the Lambda function name and S3 output bucket in the code.
 
@@ -157,48 +180,6 @@ to see that it now contains decimated waveforms.
     pip install boto3
     python run_lambda.py
 ```
-
-## (Optional) API Gateway
-
-In this section, you will create an API for your Lambda function that will let it accept requests over HTTP, and you will test it using `curl`. An API can be integrated into web services without using AWS libraries.
-
-1. From the console, navigate to API Gateway.
-
-2. Click "Create API."
-
-3. Click "Build" under "HTTP API."
-
-4. Click "Add Integration." 
-
-5. Click the down arrow in the text box, and select "Lambda."
-
-6. Click the box with the magnifying glass, and your Lambda function should appear as an option. Select it so that it appears in the box.
-
-![Adding integration](graphics/API_add_integration.png)
-
-7. Choose a name for the API, and click "Next."
-
-8. Choose POST as the route.
-
-9. Enter a resource path. This is what appear after the last '/' in your API's URL: https://your-api/resource_path. Click "Next."
-
-![Configuring routes](graphics/API_configure_routes.png)
-
-10. Click "Next" on the next screen.
-
-11. Click "Create."
-
-12. On the next screen, you can find your API's URL listed under "Stages." 
-
-13. Open `request.json` in the Cloud9 IDE, and change the value of `s3_output_bucket` to your own bucket. To decimate    different files, change the value of `s3_key`.
-
-13. Call your API by running:
-
-    ````
-    curl -X POST -H "Content-Type: application/json" -d @request.json https://your-api-url/decimate
-    ````
-
-    Replace `your-api-url` with the actual URL. This comment sends the contents of `request.json` to the API.
 
 ## Links
 
