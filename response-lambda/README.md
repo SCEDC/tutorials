@@ -6,12 +6,13 @@ The original method of creating Lambda functions packages the function and libra
 
 In summary, the steps to create your own ObsPy-based Lambda function are as follows:
 
-1. Write your custom code and a Lambda handler.
-2. Create a Docker image that has ObsPy, other dependencies, and the source code installed. Set the entrypoint to be your handler function.
-3. Test the Lambda function locally.
-4. Push the Docker image to Amazon Elastic Container Registry.
-5. Create the Lambda function from the Docker image.
-6. Optionally, set up triggers, such as an API Gateway, to call the Lambda function.
+1. Create an S3 bucket if you don't already have one.
+2. Write your custom code and a Lambda handler.
+3. Create a Docker image that has ObsPy, other dependencies, and the source code installed. Set the entrypoint to be your handler function.
+4. Test the Lambda function locally.
+5. Push the Docker image to Amazon Elastic Container Registry.
+6. Create the Lambda function from the Docker image.
+7. Optionally, set up triggers, such as an API Gateway, to call the Lambda function.
 
 This repository contains the code for a sample Lambda function that removes the response from a waveform file from the SCEDC Public Data Set and writes the resulting waveform to an S3 bucket. The output S3 bucket is specified as an environment variable when creating the function. The day of year and the network/station/channel/loction code the waveform are passed to the Lambda function in the format:
 
@@ -25,6 +26,16 @@ This repository contains the code for a sample Lambda function that removes the 
 If the location code consists only of blanks, the format of `nscl` will look like "net.sta.chan.". 
 
 This tutorial will explain how to create this Lambda function using Docker and how to adapt the process to writing your own Lambda functions for processing data from the Public Data Set.
+
+## Creating the S3 Bucket
+
+1. Log in to the AWS console.
+
+2. Navigate to the S3 service.
+
+3. Click on "Create bucket."
+
+4. Enter a name for your bucket. This name must be unique for all of S3.
 
 ## Writing the Code.
 
@@ -176,16 +187,29 @@ docker build -t response-lambda .
 
 10. Click "Create Function."
 
-11. Scroll down and click "Configuration."
+## Configuring the Lambda Function
 
-12. Click "Edit."
+These steps configure the response Lambda function in this repository. Settings for other Lambda functions will differ.
 
-13. Change memory to 2048 MB. Change the timeout to 1 min.
+1. Scroll down and click "Configuration."
 
+2. Click "Edit."
 
-14. Click "Save."
+3. Change memory to 2048 MB. Change the timeout to 1 min.
 
-15. Click "Functions" to return to the list of functions, and click your function's name to load it.
+4. Click "Save."
+
+5. Click "Environment Variables" and then "Edit."
+
+6. Click "Add environment variable."
+
+6. Enter S3_OUTPUT_BUCKET as the key and the name of your S3 bucket as the value.
+
+7. Click Save.
+
+8. Click "Functions" to return to the list of functions, and click your function's name to load it.
+
+## Testing the Lambda Function
 
 16. Click on "Test."
 
@@ -200,7 +224,7 @@ docker build -t response-lambda .
 
     Click "Test" to run the Lambda function. The Lambda function will download and remove the channel response from 2019, day 183 waveform for the channel CI.SOC.HHZ and upload the resulting waveform to the S3 bucket specified in the S3_OUTPUT_BUCKET environment variable.
 
-## Running the Lambda Function
+## Invoking the Lambda Function Outside the Console
 
 [`run_lambda.py`](run_lambda.py) contains code for invoking the response Lambda function. 
 
