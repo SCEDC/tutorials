@@ -1,3 +1,5 @@
+[Video Tutorial](https://youtu.be/VOjC37GaP4k)
+
 # Processing SCEDC Open Data Set Waveforms with ObsPy in AWS Lambda
 
 Using Docker, you can write your own Amazon Lambda function that uses ObsPy to processes waveforms from the SCEDC Open Data Set and writes the resulting data to your own S3 bucket. This means that you do not need to provision EC2 servers, nor do you need to allocate local storage space for waveforms.
