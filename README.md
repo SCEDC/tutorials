@@ -20,7 +20,7 @@
 
 * [Create a Lambda function to remove response from waveform data from SCEDC PDS](../main/response-lambda/README.md)
 
-    This tutorial uses Docker to create a Lambda function that uses ObsPy to remove response from waveform data from the PDS.
+    This tutorial shows how to make a Lambda function from a Docker image that uses ObsPy to remove response from waveform data from the PDS. [Video Tutorial](https://youtu.be/VOjC37GaP4k)
 
 ## SCEDC AWS Ridgecrest DAS  
 
