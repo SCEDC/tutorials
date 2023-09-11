@@ -18,6 +18,10 @@
 
     This tutorial shows how to create an API that runs a Lambda function to decimate a waveform from the SCEDC PDS using ObsPy and store the decimated waveform in another S3 bucket. AWS services used: Lambda, ECR, S3, Cloud9.
 
+* [Create a Lambda function to remove response from waveform data from SCEDC PDS](../main/response-lambda/README.md)
+
+    This tutorial uses Docker to create a Lambda function that uses ObsPy to remove response from waveform data from the PDS.
+
 ## SCEDC AWS Ridgecrest DAS  
 
 *  [Retrieve DAS waveform data from AWS and basic processing](../main/jupyter-notebooks/DAS_aws_Ridgecrest/access_aws_data.ipynb) 
