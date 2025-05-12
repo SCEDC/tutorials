@@ -15,7 +15,8 @@ from obspy.core.stream import Stream
 from obspy.core import UTCDateTime
 import logging
 import json
-
+from botocore.config import Config
+from botocore import UNSIGNED
 logging.basicConfig(level = logging.INFO)
 
 s3_input_bucket = 'scedc-pds'
@@ -172,8 +173,11 @@ def process(event):
     logger.info(event)
     waveforms = []
 
-    session = boto3.Session()
-    s3 = boto3.client('s3', region_name='us-west-2')
+    s3 = boto3.client('s3',
+                     region_name='us-west-2',
+                     config=Config(signature_version=UNSIGNED),
+                     aws_access_key_id='',
+                     aws_secret_access_key='')
 
     for window in event['Windows']:
         nscl = '.'.join([window['Network'], window['Station'], window['Channel'], window['Location']])
