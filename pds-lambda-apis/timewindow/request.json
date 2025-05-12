@@ -1,0 +1,20 @@
+{
+    "Windows": [
+        {
+            "Network": "CI",
+            "Station": "BOM",
+            "Channel": "BHZ",
+            "Location": "  ",
+            "Starttime": "2024-01-01T00:00:00",
+            "Endtime": "2024-01-01T00:05:00"
+        },
+        {
+            "Network": "CI",
+            "Station": "BOM",
+            "Channel": "BHN",
+            "Location": "  ",
+            "Starttime": "2024-01-01T00:00:00",
+            "Endtime": "2024-01-01T00:05:00"
+        }
+    ]
+} 
