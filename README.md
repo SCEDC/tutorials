@@ -14,11 +14,15 @@
   
     This tutorial uses the *Clickable Station Map* to query and retrieve a list of stations. It then, leverages the SCEDC FDSN availability web service to get time spans for waveform data for these stations. Finally, it retrieves data from PDS for a time span.
     
-*  [Create an API to decimate waveform data from SCEDC PDS](../main/pds-lambda-docker/README.md)
+* [Create an API to extract time windows from SCEDC PDS](../main/pds-lambda-apis/timewindow)
+
+   This tutorial creates an API that extracts time-windowed waveforms from the SCEDC PDS and streams the waveforms as JSON. AWS services used: Lambda, ECR, S3.
+
+*  [Create an API to decimate waveform data from SCEDC PDS](../main/pds-lambda-apis/decimate)
 
     This tutorial shows how to create an API that runs a Lambda function to decimate a waveform from the SCEDC PDS using ObsPy and store the decimated waveform in another S3 bucket. AWS services used: Lambda, ECR, S3, Cloud9.
 
-* [Create a Lambda function to remove response from waveform data from SCEDC PDS](../main/response-lambda/README.md)
+* [Create a Lambda function to remove response from waveform data from SCEDC PDS](../main/pds-lambda-apis/response)
 
     This tutorial shows how to make a Lambda function from a Docker image that uses ObsPy to remove response from waveform data from the PDS. [Video Tutorial](https://youtu.be/VOjC37GaP4k)
 
