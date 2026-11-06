@@ -4,6 +4,14 @@
 
 *  [Retrieve event, station and waveform data for the 2019 Ridgecrest 7.1](../main/jupyter-notebooks/Ridgecrest7_1_SCEDC_web_services.ipynb)
 
+*  [Download waveforms for every phase arrival of the 2004 M6 Parkfield earthquake](../main/jupyter-notebooks/get_parkfield_waveforms.ipynb)
+
+    This tutorial gets the phase picks for the 2004 M6 Parkfield earthquake from the USGS ComCat event service. It then downloads waveforms around each pick from the SCEDC and NCEDC FDSN dataselect services and plots them as a record section. It is based on the script [get_parkfield_waveforms_multisource.py](data-access-scripts/get_parkfield_waveforms_multisource.py).
+
+*  [Download and plot seismic records of the 2025-10-25 Vandenberg rocket launch](../main/jupyter-notebooks/get_sonic_waveforms.ipynb)
+
+    This tutorial uses the SCEDC FDSN station service to find CI HHZ channels within 200 km of launch pad SLC-4E. It downloads 20 minutes of continuous data with one bulk dataselect request and plots a record section showing the launch sound moving outward from the pad.
+
 ## SCEDC PySTP
 
 * [Retrieve and plot event triggered data and phase picks using PySTP](../main/jupyter-notebooks/PySTP_Tutorial.ipynb)
